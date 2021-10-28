@@ -30,16 +30,16 @@ namespace InkspireAPI.Controllers
 
         [HttpGet]
         public JsonResult Get()
-        {
+        { 
             string query = @"select PictureId, Title from dbo.Pictures";
-            return utils.JsonResult(query, _configuration);
+            return utils.JsonResult(query);
         }
 
         [HttpPost]
         public JsonResult Post(Picture picture)
         {
-            string query = $@"insert into dbo.Pictures values('{picture.Title}', {picture.UploadUserId})";
-            utils.JsonResult(query, _configuration);
+            //string query = $@"insert into dbo.Pictures values('{picture.Title}', {picture.UploadUserId})";
+            //utils.JsonResult(query, _configuration);
             return new JsonResult("Added successfully!");
         }
 
@@ -48,8 +48,8 @@ namespace InkspireAPI.Controllers
         {
             string query = $@"UPDATE dbo.Pictures SET 
                             Title = '{picture.Title}'
-                            WHERE pictureId = {picture.PictureId}";
-            utils.JsonResult(query, _configuration);
+                            WHERE pictureId = {picture.PictureID}";
+            utils.JsonResult(query);
             return new JsonResult("Updated successfully!");
         }
 
@@ -58,7 +58,7 @@ namespace InkspireAPI.Controllers
         {
             string query = $@"DELETE FROM dbo.Pictures
                             WHERE pictureId = {id}";
-            utils.JsonResult(query, _configuration);
+            utils.JsonResult(query);
             return new JsonResult("Deleted successfully!");
         }
 

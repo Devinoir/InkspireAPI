@@ -7,8 +7,11 @@ namespace InkspireAPI.Models
 {
     public class Picture
     {
-        public int PictureId { get; set; }
+        public string PictureID { get; set; }
+        public string UploadUserID { get; set; }
         public string Title { get; set; }
-        public int UploadUserId { get; set; }
+        public string Description { get; set; }
+        public DateTime UploadDate { get; set; }
+        public string Url { get; set; }
     }
 }
