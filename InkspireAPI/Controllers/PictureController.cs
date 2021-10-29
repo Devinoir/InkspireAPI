@@ -10,6 +10,9 @@ using System.Data;
 using InkspireAPI.Models;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
+using SqlKata.Execution;
+using MySql.Data.MySqlClient;
+using SqlKata.Compilers;
 
 namespace InkspireAPI.Controllers
 {
@@ -22,44 +25,89 @@ namespace InkspireAPI.Controllers
         private Utils utils = new Utils();
         private IWebHostEnvironment _env;
 
+        MySqlCompiler compiler = new MySqlCompiler();
+        QueryFactory queryFactory;
+        MySqlConnection connection;
+
         public PictureController(IConfiguration configuration, IWebHostEnvironment env)
         {
             _configuration = configuration;
             _env = env;
+            connection = new MySqlConnection(utils.getConStrSQL());
+            queryFactory = new QueryFactory(connection, compiler);
         }
 
         [HttpGet]
         public JsonResult Get()
-        { 
-            string query = @"select PictureId, Title from dbo.Pictures";
-            return utils.JsonResult(query);
+        {
+            return new JsonResult(queryFactory.Query("Pictures").Get());
         }
 
         [HttpPost]
         public JsonResult Post(Picture picture)
         {
-            //string query = $@"insert into dbo.Pictures values('{picture.Title}', {picture.UploadUserId})";
-            //utils.JsonResult(query, _configuration);
-            return new JsonResult("Added successfully!");
+            try
+            {
+                var newPictureID = Guid.NewGuid().ToString();
+                if (utils.GuidIsUnique("Pictures", "PictureID", newPictureID))
+                {
+                    queryFactory.Query("Pictures").AsInsert(new
+                    {
+                        PictureID = newPictureID,
+                        UploadUserID = picture.UploadUserID,
+                        Title = picture.Title,
+                        Description = picture.Description,
+                        Url = picture.Url
+                    }).Get();
+
+                    return new JsonResult("Added successfully!");
+                }
+                else
+                {
+                    Post(picture);
+                    return new JsonResult(utils.Error("Guid is not unique."));
+                }
+            }
+            catch (Exception e)
+            {
+                return new JsonResult(utils.Error(e.Message));
+            }
         }
 
         [HttpPut]
         public JsonResult Put(Picture picture)
         {
-            string query = $@"UPDATE dbo.Pictures SET 
-                            Title = '{picture.Title}'
-                            WHERE pictureId = {picture.PictureID}";
-            utils.JsonResult(query);
-            return new JsonResult("Updated successfully!");
-        }
+            try
+            {
+                queryFactory.Query("Pictures").Where("PictureID", picture.PictureID).AsUpdate(new
+                {
+                    UploadUserID = picture.UploadUserID,
+                    Title = picture.Title,
+                    Description = picture.Description,
+                    Url = picture.Url
+                }).Get();
+
+                return new JsonResult("Updated successfully!");
+            }
+            catch (Exception e)
+            {
+                return new JsonResult(utils.Error(e.Message));
+            }
+        } 
 
         [HttpDelete("{id}")]
-        public JsonResult Delete(int id)
+        public JsonResult Delete(string id)
         {
-            string query = $@"DELETE FROM dbo.Pictures
-                            WHERE pictureId = {id}";
-            utils.JsonResult(query);
-            return new JsonResult("Deleted successfully!");
+            try
+            {
+                queryFactory.Query("Pictures").Where("PictureID", id).AsDelete().Get();
+
+                return new JsonResult($"Picture with ID '{id}' was successfully deleted.");
+            }
+            catch (Exception e)
+            {
+                return new JsonResult(utils.Error(e.Message));
+            }
         }
 
         [Route("SaveFile")]

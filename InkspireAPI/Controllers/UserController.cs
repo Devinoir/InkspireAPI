@@ -36,7 +36,6 @@ namespace InkspireAPI.Controllers
         [HttpGet]
         public JsonResult Get()
         {
-            GuidIsUnique("145bb647-e3cf-45ad-84ab-b2d20e377ffb");
             return new JsonResult(queryFactory.Query("Users").Get());
         }
 
@@ -76,10 +75,52 @@ namespace InkspireAPI.Controllers
             catch (Exception e)
             {
                 return new JsonResult(utils.Error(e.Message));
-                throw;
             }
         }
 
+
+        [HttpPut]
+        public JsonResult Put(User user)
+        {
+            try
+            {
+                queryFactory.Query("Users").Where("UserID", user.UserID).AsUpdate(new
+                {
+                    UserName = user.UserName,
+                    Password = user.Password,
+                    Description = user.Description,
+                    Firstname = user.Firstname,
+                    Lastname = user.Lastname,
+                    Address = user.Address,
+                    EMail = user.EMail,
+                    PhoneNumber = user.PhoneNumber,
+                    IsArtist = user.IsArtist,
+                    Pronouns = user.Pronouns,
+                    ProfilePicture = user.ProfilePicture
+                }).Get();
+
+                return new JsonResult("Updated successfully!");
+            }
+            catch (Exception e)
+            {
+                return new JsonResult(utils.Error(e.Message));
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public JsonResult Delete(string id)
+        {
+            try
+            {
+                queryFactory.Query("Users").Where("UserID", id).AsDelete().Get();
+
+                return new JsonResult($"User with ID '{id}' was successfully deleted.");
+            }
+            catch (Exception e)
+            {
+                return new JsonResult(utils.Error(e.Message));
+            }
+        }
         public JsonResult GetUserByGuid(string guid)
         {
             try
@@ -93,34 +134,13 @@ namespace InkspireAPI.Controllers
             }
         }
 
-        private bool GuidIsUnique(string guid)
+        public bool GuidIsUnique(string guid)
         {
             if (GetUserByGuid(guid).Value.ToString().StartsWith("ERROR"))
             {
                 return true;
             }
             return false;
-        }
-
-        [HttpPut]
-        public JsonResult Put(User user)
-        {
-            //string query = $@"UPDATE dbo.Users SET 
-            //                UserName = '{user.UserName}',
-            //                DateOfJoining = '{user.JoinDate}',
-            //                ProfilePicture = '{user.ProfilePicture}'
-            //                WHERE UserId = {user.UserId}";
-            //utils.JsonResult(query, _configuration);
-            return new JsonResult("Updated successfully!");
-        }
-
-        [HttpDelete("{id}")]
-        public JsonResult Delete(int id)
-        {
-            string query = $@"DELETE FROM dbo.Users
-                            WHERE UserId = {id}";
-            utils.JsonResult(query);
-            return new JsonResult("Deleted successfully!");
         }
     }
 }

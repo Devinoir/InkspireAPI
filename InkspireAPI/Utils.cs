@@ -9,11 +9,22 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using SqlKata.Compilers;
 
 namespace InkspireAPI
 {
     public class Utils
     {
+        MySqlCompiler compiler = new MySqlCompiler();
+        QueryFactory queryFactory;
+        MySqlConnection connection;
+
+        public Utils()
+        {
+            connection = new MySqlConnection(getConStrSQL());
+            queryFactory = new QueryFactory(connection, compiler);
+        }
+
         public string getConStrSQL()
         {
             string connectionString = new MySqlConnectionStringBuilder
@@ -48,6 +59,15 @@ namespace InkspireAPI
         public string Error(string errorText)
         {
             return $"ERROR: {errorText}";
+        }
+
+        public bool GuidIsUnique(string db, string stringID, string guid)
+        {
+            if (queryFactory.Query(db).Where(stringID, guid).Limit(1).Get().Count() == 0)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }
