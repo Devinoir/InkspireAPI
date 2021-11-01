@@ -45,7 +45,7 @@ namespace InkspireAPI.Controllers
             try
             {
                 var newUserID = Guid.NewGuid().ToString();
-                if (GuidIsUnique(newUserID))
+                if (utils.GuidIsUnique("Users", "UserID", newUserID))
                 {
                     queryFactory.Query("Users").AsInsert(new
                     {
