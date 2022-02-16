@@ -126,6 +126,7 @@ namespace InkspireAPI.Controllers
                     postedFile.CopyTo(stream);
                 }
 
+                Console.WriteLine("Success");
                 return new JsonResult(filename);
             }
             catch (Exception)
